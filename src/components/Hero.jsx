@@ -1,5 +1,5 @@
 import { ArrowRight, ExternalLink } from 'lucide-react';
-import Gallery from './Gallery.jsx';
+import AnimatedCarousel from './AnimatedCarousel.jsx';
 import Navbar from './Navbar.jsx';
 
 export default function Hero() {
@@ -25,7 +25,7 @@ export default function Hero() {
             </p>
           </div>
 
-          <Gallery />
+          <AnimatedCarousel />
 
           <div className="mt-16 flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in" style={{ animationDelay: '0.6s' }}>
             <button className="group relative px-8 py-3.5 bg-stone-900 text-white rounded-full text-base font-medium overflow-hidden shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1">

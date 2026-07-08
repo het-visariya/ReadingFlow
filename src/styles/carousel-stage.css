@@ -1,0 +1,191 @@
+.stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  --side-shift: min(34vw, 420px);
+}
+
+.photo-shell {
+  position: absolute;
+  width: clamp(138px, 17vw, 250px);
+  aspect-ratio: 16 / 10;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 1px solid rgba(225, 154, 81, 0.25);
+  overflow: hidden;
+  opacity: 0.54;
+  filter: saturate(0.92) contrast(1.05);
+  box-shadow: 0 30px 76px rgba(0, 0, 0, 0.36);
+  cursor: pointer;
+  padding: 0;
+  color: inherit;
+  text-align: left;
+  border-radius: 0;
+  min-width: 0;
+  height: auto;
+  z-index: 0;
+  transition:
+    transform 680ms var(--ease-premium),
+    opacity 520ms var(--ease-premium),
+    filter 520ms var(--ease-premium),
+    width 420ms ease;
+}
+
+.photo-shell::after,
+.hero-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(6, 45, 48, 0.08), rgba(6, 45, 48, 0.34));
+}
+
+.photo-shell img,
+.hero-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photo-shell.left {
+  left: calc(50% - min(33vw, 460px) - clamp(104px, 9vw, 156px));
+  transform: translateY(-50%) scale(0.98);
+}
+
+.photo-shell.right {
+  right: calc(50% - min(33vw, 460px) - clamp(104px, 9vw, 156px));
+  transform: translateY(-50%) scale(0.98);
+}
+
+.stage.is-moving-next .photo-shell.right {
+  transform: translate(calc(clamp(150px, 20vw, 300px) * -1), -50%) scale(1.045);
+  opacity: 0.68;
+  filter: saturate(0.96) contrast(1.04);
+}
+
+.stage.is-moving-prev .photo-shell.left {
+  transform: translate(clamp(150px, 20vw, 300px), -50%) scale(1.045);
+  opacity: 0.68;
+  filter: saturate(0.96) contrast(1.04);
+}
+
+.photo-shell .side-name {
+  pointer-events: none;
+  display: none;
+}
+
+.hero-wrap {
+  position: relative;
+  width: min(66vw, 920px);
+  max-width: calc(100vw - 220px);
+  min-width: 560px;
+  aspect-ratio: 16 / 9;
+  display: grid;
+  place-items: center;
+  z-index: 2;
+}
+
+.hero-photo {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  box-shadow: 0 44px 120px rgba(0, 0, 0, 0.48);
+  outline: 1px solid rgba(225, 154, 81, 0.28);
+  z-index: 1;
+  transition: opacity 540ms var(--ease-premium), transform 680ms var(--ease-premium);
+}
+
+.hero-wrap.is-exiting .hero-photo,
+.hero-wrap.is-exiting .destination,
+.hero-wrap.is-entering .hero-photo,
+.hero-wrap.is-entering .destination {
+  transform: translateX(var(--slide, 0)) scale(var(--hero-scale, 0.992));
+  opacity: 0;
+}
+
+.destination {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  width: 124%;
+  max-width: 124%;
+  text-align: center;
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(72px, 11.2vw, 164px);
+  line-height: 0.86;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: rgba(196, 109, 44, 0.92);
+  text-shadow: 0 9px 22px rgba(10, 22, 24, 0.28);
+  mix-blend-mode: hard-light;
+  pointer-events: none;
+  transition: opacity 460ms var(--ease-premium), transform 660ms var(--ease-premium);
+}
+
+.destination.is-short {
+  font-size: clamp(88px, 13vw, 190px);
+}
+
+.destination.is-long {
+  font-size: clamp(58px, 8.6vw, 126px);
+  line-height: 0.9;
+}
+
+.viewfinder {
+  position: absolute;
+  inset: -16px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.corner {
+  position: absolute;
+  width: 54px;
+  height: 54px;
+  border-color: var(--line);
+}
+
+.corner.tl {
+  top: 0;
+  left: 0;
+  border-top: 1px solid;
+  border-left: 1px solid;
+}
+
+.corner.tr {
+  top: 0;
+  right: 0;
+  border-top: 1px solid;
+  border-right: 1px solid;
+}
+
+.corner.bl {
+  left: 0;
+  bottom: 0;
+  border-left: 1px solid;
+  border-bottom: 1px solid;
+}
+
+.corner.br {
+  right: 0;
+  bottom: 0;
+  border-right: 1px solid;
+  border-bottom: 1px solid;
+}
+
+.meta-readout {
+  position: absolute;
+  z-index: 4;
+  right: 12px;
+  bottom: -42px;
+  color: rgba(230, 213, 187, 0.48);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
