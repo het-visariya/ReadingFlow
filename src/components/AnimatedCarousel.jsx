@@ -7,6 +7,7 @@ const wrap = (value) => (value + books.length) % books.length;
 
 export default function AnimatedCarousel() {
   const [current, setCurrent] = useState(0);
+  const [viewerOpen, setViewerOpen] = useState(false);
   const [exploreOpen, setExploreOpen] = useState(false);
   const [stageClass, setStageClass] = useState("");
   const [heroPhase, setHeroPhase] = useState("");
@@ -20,6 +21,10 @@ export default function AnimatedCarousel() {
   const active = books[current];
   const previous = books[wrap(current - 1)];
   const next = books[wrap(current + 1)];
+  const galleryItems = useMemo(
+    () => books.map((book) => ({ image: book.photo, text: book.name })),
+    []
+  );
 
   const queueTimer = useCallback((callback, delay) => {
     const timer = window.setTimeout(callback, delay);
@@ -54,7 +59,7 @@ export default function AnimatedCarousel() {
 
   const move = useCallback(
     (delta) => {
-      if (isAnimatingRef.current || exploreOpenRef.current) return;
+      if (!viewerOpen || isAnimatingRef.current || exploreOpenRef.current) return;
 
       isAnimatingRef.current = true;
       setStageClass(delta > 0 ? "is-moving-next" : "is-moving-prev");
@@ -86,20 +91,44 @@ export default function AnimatedCarousel() {
         isAnimatingRef.current = false;
       }, 620);
     },
-    [queueTimer]
+    [queueTimer, viewerOpen]
   );
 
   const closePanel = useCallback(() => {
     setExploreOpen(false);
   }, []);
 
+  const openBook = useCallback((index) => {
+    setCurrent(index);
+    setViewerOpen(true);
+    setExploreOpen(false);
+  }, []);
+
+  const closeViewer = useCallback(() => {
+    setViewerOpen(false);
+    setExploreOpen(false);
+  }, []);
+
   const handleClose = useCallback(() => {
+    if (viewerOpen) {
+      closeViewer();
+      return;
+    }
     closePanel();
-  }, [closePanel]);
+  }, [closePanel, closeViewer, viewerOpen]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.key === "Escape") closePanel();
+      if (event.key === "Escape") {
+        if (exploreOpen) {
+          closePanel();
+        } else if (viewerOpen) {
+          closeViewer();
+        }
+        return;
+      }
+
+      if (!viewerOpen) return;
       if (event.key === "ArrowLeft") move(-1);
       if (event.key === "ArrowRight") move(1);
     };
@@ -109,7 +138,7 @@ export default function AnimatedCarousel() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [closePanel, move]);
+  }, [closePanel, closeViewer, move, exploreOpen, viewerOpen]);
 
   return (
     <div>
@@ -123,10 +152,14 @@ export default function AnimatedCarousel() {
         heroPhase={heroPhase}
         slide={slide}
         heroScale={heroScale}
+        isGalleryStage={!viewerOpen}
+        galleryItems={galleryItems}
+        selectedBookIndex={current}
         onPrevious={() => move(-1)}
         onNext={() => move(1)}
         onClose={handleClose}
         onExplore={() => setExploreOpen(true)}
+        onSelectBook={openBook}
       />
       <ExplorePanel destination={active} isOpen={exploreOpen} onClose={closePanel} />
     </div>
