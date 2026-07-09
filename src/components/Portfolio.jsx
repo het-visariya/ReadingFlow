@@ -38,7 +38,7 @@ export default function Portfolio({
             initialIndex={selectedBookIndex}
             onSelect={onSelectBook}
             bend={3}
-            textColor="#f6efe0"
+            textColor="#111111"
             borderRadius={0.04}
           />
         </div>

@@ -1,14 +1,6 @@
 import { Camera, Mesh, Plane, Program, Renderer, Texture, Transform } from 'ogl';
 import { useEffect, useMemo, useRef } from 'react';
 
-function debounce(func, wait) {
-  let timeout;
-  return function (...args) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), wait);
-  };
-}
-
 function lerp(p1, p2, t) {
   return p1 + (p2 - p1) * t;
 }
@@ -25,6 +17,48 @@ function autoBind(instance) {
 const DEFAULT_FONT = 'bold 30px Figtree';
 const DEFAULT_FONT_URL = 'https://fonts.googleapis.com/css2?family=Figtree:wght@400;700&display=swap';
 
+const GENRE_ITEMS = [
+  { text: 'Action & Adventure', image: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Biography', image: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Business', image: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Business & Economics', image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Children', image: 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=1200&q=80' },
+  { text: "Children's", image: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1200&q=80' },
+  { text: "Children's Fiction", image: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Classic / Sci-Fi', image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Economics', image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Fantasy', image: 'https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Fiction', image: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Fiction / Non-Fiction', image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Games', image: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Health & Fitness', image: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Historical Fiction', image: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'History', image: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Humor', image: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Mystery', image: 'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Mystery & Thriller', image: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Non-Fiction', image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Novel', image: 'https://images.unsplash.com/photo-1471107340929-a87cd0f5b5f7?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Poem', image: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Poetry', image: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Religion & Spirituality', image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Romance', image: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Science', image: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Science & Technology', image: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Science Fiction', image: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Self-Help', image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Short Stories', image: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Spirituality', image: 'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Story', image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Thriller & Suspense', image: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'Travel', image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80' },
+  { text: 'True Crime', image: 'https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=1200&q=80' }
+];
+
+function createGenreItems() {
+  return GENRE_ITEMS.map((item) => ({ ...item }));
+}
+
 function deriveFontFamilyFromUrl(url) {
   const fileName = (url.split('/').pop() || 'custom-font').split('?')[0];
   const base = fileName.replace(/\.(woff2?|ttf|otf|eot)$/i, '');
@@ -39,14 +73,14 @@ async function loadFontFromStylesheet(url) {
   let family = null;
   const fontFaces = [];
   for (const block of faceBlocks) {
-    const familyMatch = block.match(/font-family:\s*["']?([^;"']+)["']?/);
-    const urlMatch = block.match(/url\(\s*["']?([^"')]+)["']?\s*\)/);
+    const familyMatch = block.match(/font-family:\s*([^;]+);/i);
+    const urlMatch = block.match(/url\(([^)]+)\)/i);
     if (!familyMatch || !urlMatch) continue;
-    family = familyMatch[1].trim();
+    family = familyMatch[1].trim().replace(/^['"]|['"]$/g, '');
     const descriptors = {};
-    const weightMatch = block.match(/font-weight:\s*([^;]+);/);
-    const styleMatch = block.match(/font-style:\s*([^;]+);/);
-    const rangeMatch = block.match(/unicode-range:\s*([^;]+);/);
+    const weightMatch = block.match(/font-weight:\s*([^;]+);/i);
+    const styleMatch = block.match(/font-style:\s*([^;]+);/i);
+    const rangeMatch = block.match(/unicode-range:\s*([^;]+);/i);
     if (weightMatch) descriptors.weight = weightMatch[1].trim();
     if (styleMatch) descriptors.style = styleMatch[1].trim();
     if (rangeMatch) descriptors.unicodeRange = rangeMatch[1].trim();
@@ -83,7 +117,7 @@ async function resolveFont(font, fontUrl) {
         await document.fonts.load(font);
         await document.fonts.ready;
       } catch {
-        // Ignore and fall back to whatever the browser provides.
+        // Ignore and fall back to the browser default.
       }
     }
     return font;
@@ -115,25 +149,32 @@ function getFontSize(font) {
 function createTextTexture(gl, text, font = 'bold 30px monospace', color = 'black') {
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d');
+  if (!context) return { texture: null, width: 0, height: 0 };
+
   context.font = font;
   const metrics = context.measureText(text);
   const textWidth = Math.ceil(metrics.width);
-  const textHeight = Math.ceil(getFontSize(font) * 1.2);
-  canvas.width = textWidth + 20;
-  canvas.height = textHeight + 20;
+  const textHeight = Math.ceil(getFontSize(font) * 1.18);
+  canvas.width = textWidth + 24;
+  canvas.height = textHeight + 24;
   context.font = font;
-  context.fillStyle = color;
   context.textBaseline = 'middle';
   context.textAlign = 'center';
   context.clearRect(0, 0, canvas.width, canvas.height);
+  context.lineJoin = 'round';
+  context.strokeStyle = 'rgba(255, 255, 255, 0.92)';
+  context.lineWidth = 3;
+  context.strokeText(text, canvas.width / 2, canvas.height / 2);
+  context.fillStyle = color;
   context.fillText(text, canvas.width / 2, canvas.height / 2);
+
   const texture = new Texture(gl, { generateMipmaps: false });
   texture.image = canvas;
   return { texture, width: canvas.width, height: canvas.height };
 }
 
 class Title {
-  constructor({ gl, plane, text, textColor = '#545050', font = '30px sans-serif' }) {
+  constructor({ gl, plane, text, textColor = '#1b1b1b', font = '30px sans-serif' }) {
     autoBind(this);
     this.gl = gl;
     this.plane = plane;
@@ -145,6 +186,8 @@ class Title {
 
   createMesh() {
     const { texture, width, height } = createTextTexture(this.gl, this.text, this.font, this.textColor);
+    if (!texture) return;
+
     const geometry = new Plane(this.gl);
     const program = new Program(this.gl, {
       vertex: `
@@ -173,10 +216,10 @@ class Title {
     });
     this.mesh = new Mesh(this.gl, { geometry, program });
     const aspect = width / height;
-    const textHeight = this.plane.scale.y * 0.15;
+    const textHeight = this.plane.scale.y * 0.17;
     const textWidth = textHeight * aspect;
     this.mesh.scale.set(textWidth, textHeight, 1);
-    this.mesh.position.y = -this.plane.scale.y * 0.5 - textHeight * 0.5 - 0.05;
+    this.mesh.position.y = -this.plane.scale.y * 0.48 - textHeight * 0.5 - 0.07;
     this.mesh.setParent(this.plane);
   }
 }
@@ -222,7 +265,7 @@ class Media {
         void main() {
           vUv = uv;
           vec3 p = position;
-          p.z = (sin(p.x * 4.0 + uTime) * 1.5 + cos(p.y * 2.0 + uTime) * 1.5) * (0.1 + uSpeed * 0.5);
+          p.z = (sin(p.x * 4.0 + uTime) * 1.5 + cos(p.y * 2.0 + uTime) * 1.5) * (0.08 + uSpeed * 0.35);
           gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
         }
       `,
@@ -267,6 +310,7 @@ class Media {
       },
       transparent: true
     });
+
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.src = this.image;
@@ -307,7 +351,6 @@ class Media {
       const B_abs = Math.abs(this.bend);
       const R = (H * H + B_abs * B_abs) / (2 * B_abs);
       const effectiveX = Math.min(Math.abs(x), H);
-
       const arc = R - Math.sqrt(R * R - effectiveX * effectiveX);
       if (this.bend > 0) {
         this.plane.position.y = -arc;
@@ -319,7 +362,7 @@ class Media {
     }
 
     this.speed = scroll.current - scroll.last;
-    this.program.uniforms.uTime.value += 0.04;
+    this.program.uniforms.uTime.value += 0.03;
     this.program.uniforms.uSpeed.value = this.speed;
 
     const planeOffset = this.plane.scale.x / 2;
@@ -340,9 +383,6 @@ class Media {
     if (screen) this.screen = screen;
     if (viewport) {
       this.viewport = viewport;
-      if (this.plane.program.uniforms.uViewportSizes) {
-        this.plane.program.uniforms.uViewportSizes.value = [this.viewport.width, this.viewport.height];
-      }
     }
     this.scale = this.screen.height / 1500;
     this.plane.scale.y = (this.viewport.height * (900 * this.scale)) / this.screen.height;
@@ -361,11 +401,11 @@ class App {
     {
       items,
       bend,
-      textColor = '#ffffff',
+      textColor = '#1b1b1b',
       borderRadius = 0,
-      font = 'bold 30px Figtree',
-      scrollSpeed = 2,
-      scrollEase = 0.05,
+      font = 'bold 24px Figtree',
+      scrollSpeed = 0.3,
+      scrollEase = 0.018,
       isActive = true,
       onSelect,
       initialIndex = 0
@@ -378,7 +418,13 @@ class App {
     this.onSelect = onSelect;
     this.scrollSpeed = scrollSpeed;
     this.scroll = { ease: scrollEase, current: 0, target: 0, last: 0 };
-    this.onCheckDebounce = debounce(this.onCheck.bind(this), 200);
+    this.autoplaySpeed = scrollSpeed * 4.2;
+    this.interactionBias = 0;
+    this.isDragging = false;
+    this.dragAnchor = 0;
+    this.dragOffset = 0;
+    this.pointerStartX = 0;
+    this.lastFrameTime = 0;
     this.createRenderer();
     this.createCamera();
     this.createScene();
@@ -419,12 +465,7 @@ class App {
   }
 
   createMedias(items, bend = 1, textColor, borderRadius, font) {
-    const defaultItems = [
-      { image: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=900&q=85', text: 'Bridge' },
-      { image: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=900&q=85', text: 'Desk Setup' },
-      { image: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=900&q=85', text: 'Waterfall' }
-    ];
-    const galleryItems = items && items.length ? items : defaultItems;
+    const galleryItems = createGenreItems();
     this.galleryItems = galleryItems;
     this.mediasImages = galleryItems.concat(galleryItems);
     this.medias = this.mediasImages.map((data, index) => {
@@ -448,27 +489,45 @@ class App {
 
   onPointerDown(event) {
     if (!this.isActive || !this.container) return;
-    this.isDown = true;
-    this.scroll.position = this.scroll.current;
-    this.start = event.clientX;
+    this.isDragging = true;
+    this.pointerStartX = event.clientX;
+    this.dragAnchor = this.scroll.current;
+    this.dragOffset = 0;
     this.container.style.cursor = 'grabbing';
     event.preventDefault();
   }
 
   onPointerMove(event) {
-    if (!this.isActive || !this.isDown) return;
-    const x = event.clientX;
-    const distance = (this.start - x) * (this.scrollSpeed * 0.025);
-    this.scroll.target = this.scroll.position + distance;
-    event.preventDefault();
+    if (!this.isActive || !this.container) return;
+
+    if (this.isDragging) {
+      const distance = (this.pointerStartX - event.clientX) * (0.45 + this.scrollSpeed * 0.75);
+      this.dragOffset = distance;
+      this.scroll.target = this.dragAnchor + this.dragOffset;
+      this.interactionBias = Math.sign(distance) * Math.min(4.5, Math.abs(distance) * 0.13);
+      event.preventDefault();
+      return;
+    }
+
+    const delta = event.clientX - (this.pointerLastX ?? event.clientX);
+    if (Math.abs(delta) > 1) {
+      const direction = delta > 0 ? 1 : -1;
+      this.interactionBias = Math.max(-4.5, Math.min(4.5, this.interactionBias + direction * 0.6));
+      this.pointerLastX = event.clientX;
+    }
   }
 
   onPointerUp(event) {
     if (!this.isActive) return;
-    this.isDown = false;
+    this.isDragging = false;
     this.container.style.cursor = 'grab';
-    this.onCheck();
     if (event) event.preventDefault();
+  }
+
+  onPointerLeave() {
+    this.isDragging = false;
+    this.pointerLastX = null;
+    this.container.style.cursor = 'grab';
   }
 
   onKeyDown(event) {
@@ -476,13 +535,11 @@ class App {
     switch (event.key) {
       case 'ArrowRight':
         event.preventDefault();
-        this.scroll.target += this.scrollSpeed * 5;
-        this.onCheckDebounce();
+        this.interactionBias += this.scrollSpeed * 6;
         break;
       case 'ArrowLeft':
         event.preventDefault();
-        this.scroll.target -= this.scrollSpeed * 5;
-        this.onCheckDebounce();
+        this.interactionBias -= this.scrollSpeed * 6;
         break;
       default:
         break;
@@ -499,15 +556,6 @@ class App {
     const index = Math.max(0, Math.min(this.galleryItems.length - 1, rawIndex));
     this.goToIndex(index);
     this.onSelect?.(index);
-  }
-
-  onCheck() {
-    if (!this.medias || !this.medias[0]) return;
-    const width = this.medias[0].width;
-    const itemIndex = Math.round(Math.abs(this.scroll.target) / width);
-    const item = width * itemIndex;
-    this.scroll.target = this.scroll.target < 0 ? -item : item;
-    this.focusIndex = Math.max(0, Math.min(this.galleryItems.length - 1, itemIndex));
   }
 
   goToIndex(index, immediate = false) {
@@ -540,12 +588,24 @@ class App {
     }
   }
 
-  update() {
+  update(now = performance.now()) {
+    const delta = this.lastFrameTime ? Math.min(0.032, (now - this.lastFrameTime) / 1000) : 1 / 60;
+    this.lastFrameTime = now;
+
     this.scroll.current = lerp(this.scroll.current, this.scroll.target, this.scroll.ease);
     const direction = this.scroll.current > this.scroll.last ? 'right' : 'left';
+
+    if (!this.isDragging && Math.abs(this.interactionBias) > 0.001) {
+      this.scroll.target += this.interactionBias * delta * 60;
+      this.interactionBias *= Math.exp(-delta * 4.6);
+    }
+
+    this.scroll.target += this.autoplaySpeed * delta;
+
     if (this.medias) {
       this.medias.forEach((media) => media.update(this.scroll, direction));
     }
+
     this.renderer.render({ scene: this.scene, camera: this.camera });
     this.scroll.last = this.scroll.current;
     this.raf = window.requestAnimationFrame(this.update.bind(this));
@@ -556,13 +616,14 @@ class App {
     this.boundOnPointerDown = this.onPointerDown.bind(this);
     this.boundOnPointerMove = this.onPointerMove.bind(this);
     this.boundOnPointerUp = this.onPointerUp.bind(this);
+    this.boundOnPointerLeave = this.onPointerLeave.bind(this);
     this.boundOnKeyDown = this.onKeyDown.bind(this);
     this.boundOnClick = this.onClick.bind(this);
     window.addEventListener('resize', this.boundOnResize);
     this.container?.addEventListener('pointerdown', this.boundOnPointerDown);
     this.container?.addEventListener('pointermove', this.boundOnPointerMove);
     this.container?.addEventListener('pointerup', this.boundOnPointerUp);
-    this.container?.addEventListener('pointerleave', this.boundOnPointerUp);
+    this.container?.addEventListener('pointerleave', this.boundOnPointerLeave);
     this.container?.addEventListener('keydown', this.boundOnKeyDown);
     this.container?.addEventListener('click', this.boundOnClick);
   }
@@ -573,34 +634,31 @@ class App {
     this.container?.removeEventListener('pointerdown', this.boundOnPointerDown);
     this.container?.removeEventListener('pointermove', this.boundOnPointerMove);
     this.container?.removeEventListener('pointerup', this.boundOnPointerUp);
-    this.container?.removeEventListener('pointerleave', this.boundOnPointerUp);
+    this.container?.removeEventListener('pointerleave', this.boundOnPointerLeave);
     this.container?.removeEventListener('keydown', this.boundOnKeyDown);
     this.container?.removeEventListener('click', this.boundOnClick);
     this.renderer?.gl?.canvas?.remove();
-    if (this.renderer?.gl?.getExtension) {
-      const loseContext = this.renderer.gl.getExtension('WEBGL_lose_context');
-      loseContext?.loseContext();
-    }
-    if (this.renderer?.destroy) this.renderer.destroy();
+    this.renderer?.gl?.getExtension?.('WEBGL_lose_context')?.loseContext();
+    this.renderer?.destroy?.();
   }
 }
 
 export default function CircularGallery({
   items,
   bend = 3,
-  textColor = '#ffffff',
+  textColor = '#111111',
   borderRadius = 0.05,
-  font = 'bold 30px Figtree',
+  font = 'bold 24px Figtree',
   fontUrl,
-  scrollSpeed = 2,
-  scrollEase = 0.05,
+  scrollSpeed = 0.3,
+  scrollEase = 0.018,
   isActive = true,
   onSelect,
   initialIndex = 0
 }) {
   const containerRef = useRef(null);
   const appRef = useRef(null);
-  const itemList = useMemo(() => items || [], [items]);
+  const galleryItems = useMemo(() => (Array.isArray(items) && items.length >= 35 ? items : createGenreItems()), [items]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -611,7 +669,7 @@ export default function CircularGallery({
         appRef.current.destroy();
       }
       appRef.current = new App(containerRef.current, {
-        items: itemList,
+        items: galleryItems,
         bend,
         textColor,
         borderRadius,
@@ -632,7 +690,7 @@ export default function CircularGallery({
         appRef.current = null;
       }
     };
-  }, [itemList, bend, textColor, borderRadius, font, fontUrl, scrollSpeed, scrollEase, initialIndex, isActive, onSelect]);
+  }, [galleryItems, bend, textColor, borderRadius, font, fontUrl, scrollSpeed, scrollEase, initialIndex, isActive, onSelect]);
 
   useEffect(() => {
     if (!containerRef.current) return;
